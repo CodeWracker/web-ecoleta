@@ -8,6 +8,7 @@ import axios from "axios";
 import { LeafletMouseEvent } from "leaflet";
 
 import api from "../../services/api";
+import DropZone from "../../components/DropZone";
 
 interface Item {
   id: number;
@@ -41,6 +42,7 @@ const CreatePoint = () => {
     whatsapp: "",
   });
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File>();
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition((position) => {
@@ -101,11 +103,26 @@ const CreatePoint = () => {
   }
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+
     const { name, email, whatsapp } = formData;
     const uf = selectedUF;
     const city = selectedCity;
     const [latitude, longitude] = selectedPosition;
     const items = selectedItems;
+    const data = new FormData();
+    data.append("name", name);
+    data.append("email", email);
+    data.append("uf", uf);
+    data.append("city", city);
+    data.append("latitude", String(latitude));
+    data.append("longitude", String(longitude));
+    data.append("items", items.join(","));
+    data.append("whatsapp", whatsapp);
+    selectedFile
+      ? data.append("image", selectedFile)
+      : alert("Enviando sem Imagem");
+
+    /*
     const data = {
       name,
       email,
@@ -116,6 +133,7 @@ const CreatePoint = () => {
       items,
       whatsapp,
     };
+    */
     await api.post("points", data);
     alert("Ponto de Coleta Criado!");
     history.push("/");
@@ -137,6 +155,9 @@ const CreatePoint = () => {
           Cadastro do <br />
           Ponto de coleta
         </h1>
+
+        <DropZone onFileUploaded={setSelectedFile} />
+
         <fieldset>
           <legend>
             <h2>Dados</h2>
